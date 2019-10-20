@@ -8,7 +8,7 @@ import echo_pb2_grpc
 from datetime import datetime
 
 
-class ClientExample:
+class ClientExample(object):
 
     def __init__(self, username, host='localhost', port=5000):
         self.username = username
