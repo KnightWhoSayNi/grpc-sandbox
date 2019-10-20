@@ -1,8 +1,8 @@
 import grpc
 import time
 
-import chat_pb2
-import chat_pb2_grpc
+import echo_pb2
+import echo_pb2_grpc
 
 import utils
 
@@ -10,14 +10,39 @@ from concurrent import futures
 from datetime import datetime
 
 
-class ServerServiceExample(chat_pb2_grpc.ChatServicer):
+class Server(object):
+
+    def __init__(self, port=5000):
+        self.port = port
+
+        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+        echo_pb2_grpc.add_EchoServicer_to_server(ServerServiceExample(), self.server)
+
+    def start(self):
+        self.server.add_insecure_port('[::]:{}'.format(self.port))
+        self.server.start()
+        print('Starting server. Listening on port {}'.format(self.port))
+
+    def stop(self):
+        self.server.stop(0)
+
+    def run(self):
+        try:
+            while True:
+                time.sleep(4)
+                break
+        except KeyboardInterrupt:
+            self.stop()
+
+
+class ServerServiceExample(echo_pb2_grpc.EchoServicer):
 
     def __init__(self):
         self.username = "Echo"
 
-    def SendData(self, request, context):
+    def SendEcho(self, request, context):
         print("{} S <- C: [{}] {}".format(datetime.fromtimestamp(time.time()), request.username, request.content))
-        response = chat_pb2.Data()
+        response = echo_pb2.Data()
         response.username = self.username
         response.content = utils.UpperString(request.content)
         print("{} S -> C: [{}] {}".format(datetime.fromtimestamp(time.time()), response.username, response.content))
@@ -25,17 +50,6 @@ class ServerServiceExample(chat_pb2_grpc.ChatServicer):
 
 
 if __name__ == "__main__":
-
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    port = 5000
-    chat_pb2_grpc.add_ChatServicer_to_server(ServerServiceExample(), server)
-    print('Starting server. Listening on port {}'.format(port))
-    server.add_insecure_port('[::]:{}'.format(port))
+    server = Server()
     server.start()
-
-    try:
-        while True:
-            time.sleep(5)
-            break
-    except KeyboardInterrupt:
-        server.stop(0)
+    server.run()

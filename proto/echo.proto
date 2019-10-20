@@ -5,6 +5,6 @@ message Data {
   string content = 2;
 }
 
-service Chat {
-  rpc SendData (Data) returns (Data);
+service Echo {
+  rpc SendEcho (Data) returns (Data);
 }
