@@ -1,0 +1,17 @@
+language: generic
+
+sudo: false
+
+git:
+    quiet: true
+
+branches:
+  only:
+    - master
+
+services:
+  - docker
+
+script:
+  - docker-compose build
+  - docker-compose up
